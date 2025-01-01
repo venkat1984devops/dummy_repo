@@ -1,4 +1,8 @@
 Remote repo first file
 second commitss
 third
+<<<<<<< HEAD
 hi
+=======
+test pull and rebase
+>>>>>>> 4ebc5ccd521dbb38db4b8653d6fca0c32a46f344
