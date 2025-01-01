@@ -5,4 +5,8 @@ third
 hi
 =======
 test pull and rebase
+<<<<<<< HEAD
 >>>>>>> 4ebc5ccd521dbb38db4b8653d6fca0c32a46f344
+=======
+test
+>>>>>>> bb744b4c42a8a4ee2663c23f1a2fab18ec1539fc
