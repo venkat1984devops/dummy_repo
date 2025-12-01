@@ -1,48 +1,46 @@
 parameters:
-  - name: buildConfiguration
+  - name: goal
     type: string
-    default: 'package'
-    displayName: 'Build Configuration'
+    default: package
+    displayName: Maven goal to run
   - name: testResultsFiles
     type: string
     default: '**/surefire-reports/TEST-*.xml'
-    displayName: 'Test Results Files'
-  - name: JDKVersion
+    displayName: Test results files
+  - name: specificVersion
     type: string
     default: ''
-    displayName: 'JDK Version'
-  - name: artifcatPath 
-    type: string  
+    displayName: Specific version of Maven
+  - name: artifactsPath
+    type: string
     default: '**/*.jar'
-    displayName: 'Artifact Path'
-    
-stages:
-  - stage: buildstage
-    jobs:
-      - job: buildjob
-        steps:
-          - task: Maven@4
-            displayName: 'Maven Build and Test with JDKVersion Parameter'
-            condition: ne('${{ parameters.JDKVersion }}', '')
-            inputs:
-              mavenPomFile: pom.xml
-              goals: ${{ parameters.buildConfiguration }}  
-              testResultsFiles: ${{ parameters.testResultsFiles }}
-            
-          - task: Maven@4
-            displayName: 'Maven Build and Test with Default JDKVersion'
-            condition: eq('${{ parameters.JDKVersion }}', '')
-            inputs:
-              mavenPomFile: pom.xml
-              goals: ${{ parameters.buildConfiguration }}  
-              testResultsFiles: ${{ parameters.testResultsFiles }}
-          - task: CopyFiles@2
-            inputs:
-              SourceFolder: '$(System.DefaultWorkingDirectory)'
-              Contents: ${{ parameters.artifcatPath }}
-              TargetFolder: '$(Build.ArtifactStagingDirectory)'
-          - task: PublishBuildArtifacts@1
-            inputs: 
-              PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-              ArtifactName: '$(Build.Repository.Name)'
-         
+    displayName: Artifacts path
+
+
+steps:
+  - task: Maven@4
+    displayName: 'Maven build'
+    inputs:
+      mavenPomFile: pom.xml
+      goals: ${{ parameters.goal }}
+      publishJUnitResults: true
+      testResultsFiles: ${{ parameters.testResultsFiles }}
+    condition: eq('${{ parameters.specificVersion }}', '')
+      
+  - task: Maven@4
+    inputs:
+      mavenPomFile: pom.xml
+      goals: ${{ parameters.goal }}
+      publishJUnitResults: true
+      testResultsFiles: ${{ parameters.testResultsFiles }}
+      jdkVersionOption: ${{ parameters.specificVersion }}
+    condition: ne('${{ parameters.specificVersion }}', '')
+      
+  - task: CopyFiles@2
+    inputs:
+      contents: ${{ parameters.artifactsPath}}
+      targetFolder: $(Build.ArtifactStagingDirectory)
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathToPublish: $(Build.ArtifactStagingDirectory)
+      artifactName: $(Build.Repository.Name)
