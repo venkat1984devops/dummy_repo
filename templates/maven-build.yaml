@@ -1,0 +1,48 @@
+parameters:
+  - name: buildConfiguration
+    type: string
+    default: 'package'
+    displayName: 'Build Configuration'
+  - name: testResultsFiles
+    type: string
+    default: '**/surefire-reports/TEST-*.xml'
+    displayName: 'Test Results Files'
+  - name: JDKVersion
+    type: string
+    default: ''
+    displayName: 'JDK Version'
+  - name: artifcatPath 
+    type: string  
+    default: '**/*.jar'
+    displayName: 'Artifact Path'
+    
+stages:
+  - stage: buildstage
+    jobs:
+      - job: buildjob
+        steps:
+          - task: Maven@4
+            displayName: 'Maven Build and Test with JDKVersion Parameter'
+            condition: ne('${{ parameters.JDKVersion }}', '')
+            inputs:
+              mavenPomFile: pom.xml
+              goals: ${{ parameters.buildConfiguration }}  
+              testResultsFiles: ${{ parameters.testResultsFiles }}
+            
+          - task: Maven@4
+            displayName: 'Maven Build and Test with Default JDKVersion'
+            condition: eq('${{ parameters.JDKVersion }}', '')
+            inputs:
+              mavenPomFile: pom.xml
+              goals: ${{ parameters.buildConfiguration }}  
+              testResultsFiles: ${{ parameters.testResultsFiles }}
+          - task: CopyFiles@2
+            inputs:
+              SourceFolder: '$(System.DefaultWorkingDirectory)'
+              Contents: ${{ parameters.artifcatPath }}
+              TargetFolder: '$(Build.ArtifactStagingDirectory)'
+          - task: PublishBuildArtifacts@1
+            inputs: 
+              PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+              ArtifactName: '$(Build.Repository.Name)'
+         
